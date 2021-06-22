@@ -75,13 +75,7 @@ namespace TodoApi.Controllers
             return new NoContentResult();
             }
 
-            _context.TodoItems.Remove(todoItem);
-            await _context.SaveChangesAsync();
-
-            return todoItem;
-        }
-
-        private bool TodoItemExists(long id)
+          private bool TodoItemExists(long id)
         {
             return _context.TodoItems.Any(e => e.Id == id);
         }
