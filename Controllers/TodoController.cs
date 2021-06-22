@@ -17,7 +17,7 @@ namespace TodoApi.Controllers
     {
         private readonly TodoContext _context;
         private static readonly HttpClient _client = new HttpClient();
-private static readonly string _remoteUrl = "https://backendapps.azurewebsites.net";
+        private static readonly string _remoteUrl = "https://backendapps.azurewebsites.net";
 
         public TodoController(TodoContext context)
         {
@@ -35,7 +35,7 @@ private static readonly string _remoteUrl = "https://backendapps.azurewebsites.n
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItem()
         {
             var data = await _client.GetStringAsync($"{_remoteUrl}/api/Todo");
-return JsonConvert.DeserializeObject<List<TodoItem>>(data);
+            return JsonConvert.DeserializeObject<List<TodoItem>>(data);
         }
 
         // GET: api/Todo/5
@@ -43,7 +43,7 @@ return JsonConvert.DeserializeObject<List<TodoItem>>(data);
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
             var data = await _client.GetStringAsync($"{_remoteUrl}/api/Todo/{id}");
-return Content(data, "application/json");
+            return Content(data, "application/json");
         }
 
         // PUT: api/Todo/5
@@ -53,7 +53,7 @@ return Content(data, "application/json");
         public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
         {
             var res = await _client.PutAsJsonAsync($"{_remoteUrl}/api/Todo/{id}", todoItem);
-return new NoContentResult();
+            return new NoContentResult();
         }
 
         // POST: api/Todo
@@ -63,8 +63,8 @@ return new NoContentResult();
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
         {
             var response = await _client.PostAsJsonAsync($"{_remoteUrl}/api/Todo", todoItem);
-var data = await response.Content.ReadAsStringAsync();
-return Content(data, "application/json");
+            var data = await response.Content.ReadAsStringAsync();
+            return Content(data, "application/json");
         }
 
         // DELETE: api/Todo/5
@@ -72,7 +72,7 @@ return Content(data, "application/json");
         public async Task<ActionResult<TodoItem>> DeleteTodoItem(long id)
         {
             var res = await _client.DeleteAsync($"{_remoteUrl}/api/Todo/{id}");
-return new NoContentResult();
+            return new NoContentResult();
         }
 
         private bool TodoItemExists(long id)
