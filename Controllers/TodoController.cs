@@ -14,11 +14,8 @@ namespace TodoApi.Controllers
     [Route("api/[controller]")] 
     [ApiController]
     public class TodoController : Controller
-    {   
-
+    {
         private readonly TodoContext _context;
-        private static readonly HttpClient _client = new HttpClient();
-        private static readonly string _remoteUrl = "https://backendapps.azurewebsites.net";
 
         public TodoController(TodoContext context)
         {
@@ -35,16 +32,21 @@ namespace TodoApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItem()
         {
-            var data = await _client.GetStringAsync($"{_remoteUrl}/api/Todo");
-            return JsonConvert.DeserializeObject<List<TodoItem>>(data);
+            return await _context.TodoItems.ToListAsync();
         }
 
         // GET: api/Todo/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
-            var data = await _client.GetStringAsync($"{_remoteUrl}/api/Todo/{id}");
-            return Content(data, "application/json"); 
+            var todoItem = await _context.TodoItems.FindAsync(id);
+
+            if (todoItem == null)
+            {
+                return NotFound();
+            }
+
+            return todoItem;
         }
 
         // PUT: api/Todo/5
@@ -53,8 +55,30 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
         {
-            var res = await _client.PutAsJsonAsync($"{_remoteUrl}/api/Todo/{id}", todoItem);
-            return new NoContentResult();
+            if (id != todoItem.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(todoItem).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TodoItemExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         // POST: api/Todo
@@ -63,18 +87,31 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
         {
-            var response = await _client.PostAsJsonAsync($"{_remoteUrl}/api/Todo", todoItem);
-            var data = await response.Content.ReadAsStringAsync();
-            return Content(data, "application/json");
+            _context.TodoItems.Add(todoItem);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
         }
 
         // DELETE: api/Todo/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<TodoItem>> DeleteTodoItem(long id)
         {
-            var res = await _client.DeleteAsync($"{_remoteUrl}/api/Todo/{id}");
-            return new NoContentResult();
+            var todoItem = await _context.TodoItems.FindAsync(id);
+            if (todoItem == null)
+            {
+                return NotFound();
             }
 
-          }
+            _context.TodoItems.Remove(todoItem);
+            await _context.SaveChangesAsync();
+
+            return todoItem;
+        }
+
+        private bool TodoItemExists(long id)
+        {
+            return _context.TodoItems.Any(e => e.Id == id);
+        }
+    }
 }
